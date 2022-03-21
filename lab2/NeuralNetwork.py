@@ -3,7 +3,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-plt.switch_backend("agg")
+
 import math
 from utils import activate_func
 
@@ -26,14 +26,14 @@ class NeuralNetwork(object ):
         self.parameters = {}
 
         # define the hperparameter
-        self.learning_rate = 0.1
+        self.learning_rate = 0.01
         self.epochs = 10000
         self.batch = 10
         
         
         # setup the weights
         for i in range(1, self.L +1):
-            self.parameters['W' + str(i)] = np.random.randn(self.n[i], self.n[i-1]) * 0.1
+            self.parameters['W' + str(i)] = np.random.randn(self.n[i], self.n[i-1])
             self.parameters['a' + str(i)] = np.ones((self.n[i], 1))
             self.parameters['z' + str(i)] = np.ones((self.n[i], 1))
         
@@ -42,6 +42,7 @@ class NeuralNetwork(object ):
         self.derivatives = {}
         
         # setup activation function
+        self.activation_name = args.activation_func
         self.activation, self.activation_back = activate_func(args.activation_func).setup()
         
 
@@ -49,9 +50,13 @@ class NeuralNetwork(object ):
         # define optimizer: SGD, Momentem, Adagrad, Adams
         self.optimizer = args.optimizer
         
-
+        self.momentum = 0.5
+        self.vel_W1 = 0
+        self.vel_W2 = 0
+        self.vel_W3 = 0
+    
     def forward_propagation(self,input):
-        
+            
         # define which activation function 
         activation_function = self.activation
         
@@ -66,8 +71,13 @@ class NeuralNetwork(object ):
     def backward_propagation(self, y):
         
         derivative_activation = self.activation_back
+
+        al = self.parameters['a' + str(self.L)]
+        zl = self.parameters['z' + str(self.L)]
+
+        self.derivatives['dz' + str(self.L)] = -((y*(1-al) - (1-y)*al)/al*(1-al))*derivative_activation(zl)
         
-        self.derivatives['dz' + str(self.L)] = self.parameters['a' + str(self.L)] - y
+        
         self.derivatives['dW' + str(self.L)] = np.dot(self.derivatives['dz' + str(self.L)], np.transpose(self.parameters['a' + str(self.L - 1)]))
         
         for i in range(self.L-1, 0 , -1):
@@ -80,19 +90,34 @@ class NeuralNetwork(object ):
     
     
     def loss(self,y):
-        self.parameters['Cost'] = -(y*np.log(self.parameters['a' + str(self.L)]) + 
-                                 (1-y)*np.log( 1 - self.parameters['a' + str(self.L)]))
-        
+        result = self.parameters['a' + str(self.L)] 
+        # cross_entropy loss function will cause nan in cost
+        if   self.activation_name != "sigmoid":
+            self.parameters['Cost'] = -(y*np.log(result) + 
+                                 (1-y)*np.log( 1 - result))
+        # if the activation function is sigmoid, it works fine
+        else:
+            self.parameters['Cost'] = -(y*np.log(result) + 
+                                 (1-y)*np.log( 1 - result))
+            
     def update_weight(self, epochs):
         
         if (self.optimizer == "SGD"):
             
             for i in range(1,self.L+1):
                 self.parameters['W' + str(i)] -= self.learning_rate * self.derivatives['dW' + str(i)]
-
+                
+        if (self.optimizer == "momentum"):
+            
+            self.vel_W1 = self.momentum*self.vel_W1 + self.learning_rate*self.derivatives['dW1']
+            self.vel_W2 = self.momentum*self.vel_W2 + self.learning_rate*self.derivatives['dW2']
+            self.vel_W3 = self.momentum*self.vel_W3 + self.learning_rate*self.derivatives['dW3']
+            self.parameters['W1'] -= self.vel_W1
+            self.parameters['W2'] -= self.vel_W2
+            self.parameters['W3'] -= self.vel_W3
+            
     def split_data(self,x, y , split_percent):
         
-
         size = x.shape[1]
         split_index = (int)(size* split_percent)
         index = np.linspace(0, size-1, size,dtype= int)
@@ -104,10 +129,7 @@ class NeuralNetwork(object ):
         val_ｙ = y[:,index[split_index :]]
         
         return train_x, val_x, train_y, val_ｙ
-        
-    def predict(self,x):
-        self.forward_propagation(x)
-        return self.parameters['a' + str(self.L)]
+
         
     def train(self, x, y):
         
@@ -119,21 +141,19 @@ class NeuralNetwork(object ):
             
             batch_value = 0
             correct_predict = 0
-
             
             # there will be epochs/batch iterations to do in loop
             while(batch_value < len(train_x[1])):
                 
                 x = train_x[:,batch_value:batch_value+self.batch]
                 y = train_y[:,batch_value:batch_value+self.batch]
-
                 self.forward_propagation(x)
                 self.loss(y)
                 self.backward_propagation(y)
                 self.update_weight(self.epochs)
                 
                 batch_value += self.batch
-               
+                
             # predict  
             y_predict = self.predict(val_x)
 
@@ -142,16 +162,20 @@ class NeuralNetwork(object ):
                     correct_predict += 1
                 
             self.loss(val_y)
+            loss = np.sum(self.parameters['Cost'])/len(val_y[0])
+            loss_record.append(loss)
             
-            if (i+1)%1 == 0:
-                print("epoch : {}".format(i+1))
-                loss = np.sum(self.parameters['Cost'])/len(val_y[0])
-                print("loss: {}".format(loss))
+            if (i+1) % 50 == 1:
             
-                
-                
-                
-            
+                print("loss of {} ".format(i+1)," epoch : {} ".format(loss))
+
+        plt.title("learning curve", fontsize = 18)
+        ep = [x for x in range(1, self.epochs + 1)]
+        plt.xlabel("epochs")
+        plt.ylabel("loss")
+        plt.plot(ep, loss_record)
+        plt.show()
+
         
     def test(self,x,y):
         # predict  
@@ -159,9 +183,18 @@ class NeuralNetwork(object ):
         correct_predict = 0
         
         for j in range(len(y_predict[0])):
-            if y_predict[:,j] - y[:,j] <= 0.1:
-                correct_predict += 1
+            if y_predict[:,j]  <= 0.3:
+                y_predict[:,j] = 0
+            else:
+                y_predict[:,j] = 1
+                
+            if y_predict[:,j] ==  y[:,j] :
+                correct_predict+=1
         
         print("accuracy: {} %".format(correct_predict/len(y_predict[0])*100))
 
             
+        
+    def predict(self,x):
+        self.forward_propagation(x)
+        return self.parameters['a' + str(self.L)]

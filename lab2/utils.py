@@ -32,22 +32,30 @@ class activate_func(object):
         
         return self.sigmoid(z)*(1-self.sigmoid(z))
     
+    # tanh project to 0~1 
     def tanh (self,x):
-        return (np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x))
-    
+        return ((np.exp(x) - np.exp(-x)) / (np.exp(x) + np.exp(-x)) + 1)/2
+
+    # the derivative is kind of special, too
     def tanh_d(self,x):
-        return 1 - self.tanh(x)^2
+        return 2/((np.exp(x) + np.exp(-x))**2)
     
     def relu(self,x):
-        if x < 0: return 0
-        else: return x
+        y = np.copy(x)
+        y[y<0] = 0
+        return y
         
     def relu_d(self,x):
-        if x < 0: return 0
-        else: 1
-        
+        y = np.copy(x)
+        y[y>=0] = 1
+        y[y<0] = 0
+        return y
+    
     def none(self,x):
-        return x
+        
+        return abs(x)
         
     def none_d(self,x):
-        return 1
+        y = np.zeros(x.shape)
+        y[y==0] = 1
+        return y
