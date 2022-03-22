@@ -7,14 +7,11 @@ import matplotlib.pyplot as plt
 import math
 from utils import activate_func
 
-# This is a two-layer neural network
-
-
 class NeuralNetwork(object ):
     
     def __init__(self,args):
         
-        # args should pass architectur, activation_func, optimizaer
+        # args should pass architecture, activation_func, optimizaer
         
         # define nn structure
         self.n = np.array(args.architecture)
@@ -26,8 +23,8 @@ class NeuralNetwork(object ):
         self.parameters = {}
 
         # define the hperparameter
-        self.learning_rate = 0.01
-        self.epochs = 10000
+        self.learning_rate = args.learning_rate
+        self.epochs = args.epochs
         self.batch = 10
         
         
@@ -44,7 +41,7 @@ class NeuralNetwork(object ):
         # setup activation function
         self.activation_name = args.activation_func
         self.activation, self.activation_back = activate_func(args.activation_func).setup()
-        
+        self.loss_name = args.loss_function
 
         
         # define optimizer: SGD, Momentem, Adagrad, Adams
@@ -75,7 +72,10 @@ class NeuralNetwork(object ):
         al = self.parameters['a' + str(self.L)]
         zl = self.parameters['z' + str(self.L)]
 
-        self.derivatives['dz' + str(self.L)] = -((y*(1-al) - (1-y)*al)/al*(1-al))*derivative_activation(zl)
+        if self.loss_name == "LMS":
+            self.derivatives['dz' + str(self.L)] = 2*(al - y) * derivative_activation(zl)
+        else:
+            self.derivatives['dz' + str(self.L)] = -((y*(1-al) - (1-y)*al)/al*(1-al)) * derivative_activation(zl)
         
         
         self.derivatives['dW' + str(self.L)] = np.dot(self.derivatives['dz' + str(self.L)], np.transpose(self.parameters['a' + str(self.L - 1)]))
@@ -92,13 +92,13 @@ class NeuralNetwork(object ):
     def loss(self,y):
         result = self.parameters['a' + str(self.L)] 
         # cross_entropy loss function will cause nan in cost
-        if   self.activation_name != "sigmoid":
-            self.parameters['Cost'] = -(y*np.log(result) + 
-                                 (1-y)*np.log( 1 - result))
-        # if the activation function is sigmoid, it works fine
+        if   self.loss_name == "LMS":
+            self.parameters['Cost'] = np.mean((result - y) ** 2)
+            
         else:
-            self.parameters['Cost'] = -(y*np.log(result) + 
-                                 (1-y)*np.log( 1 - result))
+            self.parameters['Cost'] = np.mean(-(y*np.log(result) + 
+                                 (1-y)*np.log( 1 - result)))
+
             
     def update_weight(self, epochs):
         
@@ -162,7 +162,7 @@ class NeuralNetwork(object ):
                     correct_predict += 1
                 
             self.loss(val_y)
-            loss = np.sum(self.parameters['Cost'])/len(val_y[0])
+            loss = self.parameters['Cost']
             loss_record.append(loss)
             
             if (i+1) % 50 == 1:
@@ -183,7 +183,7 @@ class NeuralNetwork(object ):
         correct_predict = 0
         
         for j in range(len(y_predict[0])):
-            if y_predict[:,j]  <= 0.3:
+            if y_predict[:,j]  <= 0.8:
                 y_predict[:,j] = 0
             else:
                 y_predict[:,j] = 1
