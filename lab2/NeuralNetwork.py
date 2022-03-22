@@ -47,7 +47,7 @@ class NeuralNetwork(object ):
         # define optimizer: SGD, Momentem, Adagrad, Adams
         self.optimizer = args.optimizer
         
-        self.momentum = 0.5
+        self.momentum = 0.9
         self.vel_W1 = 0
         self.vel_W2 = 0
         self.vel_W3 = 0

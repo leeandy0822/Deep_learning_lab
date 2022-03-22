@@ -64,15 +64,15 @@ if __name__ == "__main__":
     
     parser.add_argument("architecture", nargs='?',default = [2 , 5, 7 ,1],type = list,help="A list to define nn structue, default is [2, 5, 5 ,1]")
     # activation function
-    parser.add_argument("activation_func",  nargs='?',default = "tanh_p", help = "activation function(sigmoid, tanh, none), default is sigmoid")
+    parser.add_argument("activation_func",  nargs='?',default = "sigmoid", help = "activation function(sigmoid, tanh, none), default is sigmoid")
     # optimizer
-    parser.add_argument("optimizer", nargs='?',default = "momentum",help = "optimizer function, default is SGD")
+    parser.add_argument("optimizer", nargs='?',default = "SGD",help = "optimizer function, default is SGD")
     # loss function 
-    parser.add_argument("loss_function", nargs='?',default="CE",help= "CE (cross entropy)or LMS ")
+    parser.add_argument("loss_function", nargs='?',default="LMS",help= "CE (cross entropy)or LMS ")
     # learning rate
     parser.add_argument("learning_rate", nargs='?',default=0.01, type = float,help= "learning_rate, default is 0.01 ")
     # epochs
-    parser.add_argument("epochs", nargs='?',default=30000, type = int,help= "epochs, default is 10000 ")
+    parser.add_argument("epochs", nargs='?',default=50000, type = int,help= "epochs, default is 10000 ")
     # dataset
     parser.add_argument("data", nargs='?',default="linear",help= "linear or XOR datatype")
     
