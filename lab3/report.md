@@ -1,5 +1,5 @@
 # 深度學習 HW2
-機器人學程 李啟安 3010605015
+機器人學程 李啟安 310605015
 ###### tags: `深度學習`
 
 ## Q1. A plot shows episode scores of at least 100,000 training episodes
