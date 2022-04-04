@@ -82,11 +82,13 @@ In this lab, I change the following function :
 <img src="https://i.imgur.com/bFSv9m1.png"  width="300" height="50" />
 
 
-![](https://i.imgur.com/l7FdUeW.png)
+![](https://i.imgur.com/1izajnW.png)
+- Assume s2 is the terminate state
+- The last three states :  {(s0,s0',a0,r0), (s1,s1',a1,r1), (s2,s2,x,-1) }
 
-1. Caculate the value function of terminal state
-2. Loop through the path by updating the value function
-3. Then you can get the new value function of the whole path! 
+1. Caculate the value function of s1
+2. Loop through the path by updating the value function (s0 and states before s0)
+3. Then you can get the new value function of the whole path ! 
 
 - main :
     - 跑程式

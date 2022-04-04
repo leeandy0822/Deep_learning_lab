@@ -763,15 +763,20 @@ public:
 		
 		path.pop_back();
 		state& move_final = path.back();
-		// Terminal state 
+
+		// Terminal state V(terminal) =0, also all value function is 0
 		// v(s) <- v(s) + alpha(r + V(s'') - V(s))
-		float previous_state = 0 - estimate(move_final.before_state());
+
+		float after_state = 0 + alpha*(move_final.reward() + 0 -  estimate(move_final.before_state()));
 
 		// loop through all path
 		for (path.pop_back() /* terminal state */; path.size(); path.pop_back()) {
+			// go back one state
 			state& move = path.back();
-			float error =  previous_state - estimate(move.before_state()) + move.reward();
-			previous_state = update(move.before_state(), alpha * error);
+			// find TD error
+			float error =  move.reward() + after_state - estimate(move.before_state());
+			// update board with value function
+			after_state = update(move.before_state(), alpha * error);
 		}
  
 	}
@@ -899,7 +904,7 @@ int main(int argc, const char* argv[]) {
 	learning tdl;
 
 	// set the learning parameters
-	float alpha = 0.001;
+	float alpha = 0.1;
 	size_t total = 50000;
 	unsigned seed;
 	__asm__ __volatile__ ("rdtsc" : "=a" (seed));
@@ -951,7 +956,7 @@ int main(int argc, const char* argv[]) {
 
 	// restore the model from file
 	// load weight
-	tdl.load("./weight/a_0.01_t_250000");
+	tdl.load("");
 
 	// train the model
 	std::vector<state> path;
