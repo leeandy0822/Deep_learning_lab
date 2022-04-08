@@ -22,7 +22,7 @@ Compared to recording all the state of boards, **n-tuple network can use multipl
 
 ![](https://i.imgur.com/Lw3VzN1.png)
 
-可以看到我們宣告了一個 6-tuple 然後根據鏡像以及旋轉，可以得到八種不同的結果。六個位置可以對應到一組 index，然後可以從 network中找到對應的value，例如： **fig.3 右側的網路就是以第三種版面為例子，所以可以看到第三種版面為 1 ，其餘都是 0，我們即可拿到第三種版面的權重，相乘就可以得到估計值**，因此八種版面估計值加總，就可以成為此版面的價值了！
+從助教給的圖片可以看到我們宣告了一個 6-tuple 然後根據鏡像以及旋轉，可以得到八種不同的結果。六個位置可以對應到一組 index，然後可以從 network中找到對應的value，乘上權重就可以得到一種的估計值，因此把旋轉對稱八種版面估計值加總，就可以成為此版面的價值了！
 
 我們可以在多取一點feature，助教的sample code 有四種，那我又自己加上三種，總共有七種 feature。
 
@@ -46,10 +46,12 @@ In the project, the discount fector is set to 1, We will keep update our value f
 ## Q4. Explain the TD-backup diagram of V(after-state).
 ![](https://i.imgur.com/zNbYA4M.png)
 
-The after-state method only cares about the after state. We want to update $V(s')$ by selecting $a_{next}$ and chooseing TD target as $r_{next} + V(s'_{next})$. Then we can get TD error by $(r_{next} + V(s'_{next}) - V(s'))$. Finally update $V(s')$ by multiplying the learning_rate $\alpha$.
+The after-state method only cares about the after state. We want to update $V(s')$ by selecting $a_{next}$ and chooseing TD target as $(r_{next} + V(s^{'}_{next}))$ . 
+
+Then we can get TD error by $(r_{next} + V(s'_{next}) - V(s'))$.  Finally update $V(s')$ by multiplying TD error and the learning_rate.
 
 ## Q5. Explain the action selection of V(after-state) in a diagram.
-To select the best action, it will caculate all possible actions and select the action that can go to state with highest value function.
+To select the best action, it will calculate all possible actions and select the action that can go to state with highest value function.
 
 <img src="https://i.imgur.com/H4vQn1P.png"  width="300" height="80" />
 
