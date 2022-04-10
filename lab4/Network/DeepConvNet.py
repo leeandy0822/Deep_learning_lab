@@ -16,7 +16,7 @@ class DeepConvNet(nn.Module):
             # parameters = Cin*h*w*Cout + Cout(bias)
             # https://towardsdatascience.com/pytorch-conv2d-weights-explained-ff7f68f652eb
             nn.Conv2d(1,25, kernel_size=(1,5), stride = (1, 2), bias=True),
-            nn.Conv2d(25,25,kernel_size=(2,1), stride = (1, 2), bias=True),
+            nn.Conv2d(25,25,kernel_size=(2,1), bias=True),
             # update gamma and beta parameters = 2x25
             nn.BatchNorm2d(25, affine=True),
             activation[activation_func],
@@ -51,7 +51,8 @@ class DeepConvNet(nn.Module):
         )
         
         self.classify = nn.Sequential(
-            nn.Linear(1600, 2, bias=True)
+            nn.Linear(1600, 2, bias=True),
+            nn.Softmax(dim=1)
         ) 
     
     def forward(self,input):
@@ -60,7 +61,7 @@ class DeepConvNet(nn.Module):
         h2 = self.featurelayer2(h1)
         h3 = self.featurelayer3(h2)
         h4 = self.featurelayer4(h3)
-        
+        # Flatten
         output = h4.view(h4.size(0), -1)
         return self.classify(output)
         
