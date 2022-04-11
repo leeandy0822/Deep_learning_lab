@@ -1,0 +1,178 @@
+2022-04-11 18:52:16,065 INFO    MainThread:596576 [wandb_setup.py:_flush():75] Loading settings from /home/leeandy/.config/wandb/settings
+2022-04-11 18:52:16,065 INFO    MainThread:596576 [wandb_setup.py:_flush():75] Loading settings from /home/leeandy/Deep_learning_lab/lab4/wandb/settings
+2022-04-11 18:52:16,066 INFO    MainThread:596576 [wandb_setup.py:_flush():75] Loading settings from environment variables: {}
+2022-04-11 18:52:16,066 INFO    MainThread:596576 [wandb_setup.py:_flush():75] Inferring run settings from compute environment: {'program_relpath': 'lab4/main.py', 'program': 'main.py'}
+2022-04-11 18:52:16,066 INFO    MainThread:596576 [wandb_init.py:_log_setup():438] Logging user logs to /home/leeandy/Deep_learning_lab/lab4/wandb/run-20220411_185216-a4161c2s/logs/debug.log
+2022-04-11 18:52:16,066 INFO    MainThread:596576 [wandb_init.py:_log_setup():439] Logging internal logs to /home/leeandy/Deep_learning_lab/lab4/wandb/run-20220411_185216-a4161c2s/logs/debug-internal.log
+2022-04-11 18:52:16,066 INFO    MainThread:596576 [wandb_init.py:init():472] calling init triggers
+2022-04-11 18:52:16,066 INFO    MainThread:596576 [wandb_init.py:init():475] wandb.init called with sweep_config: {}
+config: {}
+2022-04-11 18:52:16,067 INFO    MainThread:596576 [wandb_init.py:init():525] starting backend
+2022-04-11 18:52:16,067 INFO    MainThread:596576 [backend.py:_multiprocessing_setup():99] multiprocessing start_methods=fork,spawn,forkserver, using: spawn
+2022-04-11 18:52:16,082 INFO    MainThread:596576 [backend.py:ensure_launched():219] starting backend process...
+2022-04-11 18:52:16,087 INFO    MainThread:596576 [backend.py:ensure_launched():224] started backend process with pid: 596602
+2022-04-11 18:52:16,088 INFO    MainThread:596576 [wandb_init.py:init():534] backend started and connected
+2022-04-11 18:52:16,091 INFO    MainThread:596576 [wandb_init.py:init():598] updated telemetry
+2022-04-11 18:52:16,103 INFO    MainThread:596576 [wandb_init.py:init():629] communicating run to backend with 30 second timeout
+2022-04-11 18:52:16,840 INFO    MainThread:596576 [wandb_run.py:_on_init():1922] communicating current version
+2022-04-11 18:52:16,991 INFO    MainThread:596576 [wandb_run.py:_on_init():1926] got version response upgrade_message: "wandb version 0.12.14 is available!  To upgrade, please run:\n $ pip install wandb --upgrade"
+
+2022-04-11 18:52:16,991 INFO    MainThread:596576 [wandb_init.py:init():660] starting run threads in backend
+2022-04-11 18:52:17,032 INFO    MainThread:596576 [wandb_run.py:_console_start():1896] atexit reg
+2022-04-11 18:52:17,032 INFO    MainThread:596576 [wandb_run.py:_redirect():1769] redirect: SettingsConsole.REDIRECT
+2022-04-11 18:52:17,032 INFO    MainThread:596576 [wandb_run.py:_redirect():1774] Redirecting console.
+2022-04-11 18:52:17,033 INFO    MainThread:596576 [wandb_run.py:_redirect():1830] Redirects installed.
+2022-04-11 18:52:17,033 INFO    MainThread:596576 [wandb_init.py:init():685] run started, returning control to user process
+2022-04-11 18:52:17,034 INFO    MainThread:596576 [wandb_config.py:__setitem__():153] config set learning_rate = 0.0003 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x7fc13c77abb0>>
+2022-04-11 18:52:17,034 INFO    MainThread:596576 [wandb_run.py:_config_callback():1129] config_cb learning_rate 0.0003 None
+2022-04-11 18:52:17,034 INFO    MainThread:596576 [wandb_config.py:__setitem__():153] config set batch_size = 16 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x7fc13c77abb0>>
+2022-04-11 18:52:17,034 INFO    MainThread:596576 [wandb_run.py:_config_callback():1129] config_cb batch_size 16 None
+2022-04-11 18:52:17,034 INFO    MainThread:596576 [wandb_config.py:__setitem__():153] config set epochs = 300 - <bound method Run._config_callback of <wandb.sdk.wandb_run.Run object at 0x7fc13c77abb0>>
+2022-04-11 18:52:17,034 INFO    MainThread:596576 [wandb_run.py:_config_callback():1129] config_cb epochs 300 None
+2022-04-11 18:52:18,945 INFO    MainThread:596576 [wandb_watch.py:watch():47] Watching
+2022-04-11 18:56:54,202 INFO    MainThread:596576 [wandb_run.py:_finish():1684] finishing run leeandy0822/ECG_classifier/a4161c2s
+2022-04-11 18:56:54,203 INFO    MainThread:596576 [wandb_run.py:_atexit_cleanup():1865] got exitcode: 0
+2022-04-11 18:56:54,203 INFO    MainThread:596576 [wandb_run.py:_restore():1837] restore
+2022-04-11 18:56:57,100 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 1
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 151942
+  total_bytes: 151942
+}
+
+2022-04-11 18:56:57,363 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 1
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 151942
+  total_bytes: 151942
+}
+
+2022-04-11 18:56:57,930 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 151942
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,034 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 151942
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,137 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 151942
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,240 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,344 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,445 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,546 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,647 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,748 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,849 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:58,949 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+
+2022-04-11 18:56:59,766 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+
+2022-04-11 18:57:00,096 INFO    MainThread:596576 [wandb_run.py:_on_finish():1995] got exit ret: done: true
+exit_result {
+}
+file_counts {
+  wandb_count: 5
+  artifact_count: 1
+}
+pusher_stats {
+  uploaded_bytes: 261607
+  total_bytes: 261607
+}
+local_info {
+}
+
+2022-04-11 18:57:01,206 INFO    MainThread:596576 [wandb_run.py:_footer_history_summary_info():3087] rendering history
+2022-04-11 18:57:01,207 INFO    MainThread:596576 [wandb_run.py:_footer_history_summary_info():3116] rendering summary
+2022-04-11 18:57:01,208 INFO    MainThread:596576 [wandb_run.py:_footer_sync_info():3044] logging synced files

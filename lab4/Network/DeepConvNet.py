@@ -50,10 +50,7 @@ class DeepConvNet(nn.Module):
             nn.Dropout(0.5)
         )
         
-        self.classify = nn.Sequential(
-            nn.Linear(1600, 2, bias=True),
-            nn.Softmax(dim=1)
-        ) 
+        self.classify = nn.Linear(1600, 2, bias = True)
     
     def forward(self,input):
         

@@ -1,0 +1,44 @@
+training set shape:  (1080, 1, 2, 750) (1080,)
+testing set shape:  (1080, 1, 2, 750) (1080,)
+EEGNet(
+  (firstconv): Sequential(
+    (0): Conv2d(1, 16, kernel_size=(1, 51), stride=(1, 1), padding=(0, 25), bias=False)
+    (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+  )
+  (depthwiseConv): Sequential(
+    (0): Conv2d(16, 32, kernel_size=(2, 1), stride=(1, 1), groups=16, bias=False)
+    (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): AvgPool2d(kernel_size=(1, 4), stride=(1, 4), padding=0)
+    (4): Dropout(p=0.25, inplace=False)
+  )
+  (separableConv): Sequential(
+    (0): Conv2d(32, 32, kernel_size=(1, 15), stride=(1, 1), padding=(0, 7), bias=False)
+    (1): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): LeakyReLU(negative_slope=0.01)
+    (3): AvgPool2d(kernel_size=(1, 8), stride=(1, 8), padding=0)
+    (4): Dropout(p=0.25, inplace=False)
+  )
+  (classify): Sequential(
+    (0): Linear(in_features=736, out_features=2, bias=True)
+  )
+)
+Entered
+Using GPU Acceleration!!
+0 epochs
+1 epochs
+Train loss: 0.048505: 100%|███████████████████| 34/34 [00:00<00:00, 56.90it/s]
+Train accuracy: 100.00% : 100%|██████████████| 34/34 [00:00<00:00, 178.58it/s]
+Test accuracy: 86.20% : 100%|████████████████| 34/34 [00:00<00:00, 179.75it/s]
+Train loss: 0.039834: 100%|███████████████████| 34/34 [00:00<00:00, 90.08it/s]
+Train accuracy: 100.00% : 100%|██████████████| 34/34 [00:00<00:00, 181.49it/s]
+Test accuracy: 86.30% : 100%|████████████████| 34/34 [00:00<00:00, 180.10it/s]
+Train loss: 0.036951: 100%|███████████████████| 34/34 [00:00<00:00, 90.50it/s]
+Train accuracy: 100.00% : 100%|██████████████| 34/34 [00:00<00:00, 184.45it/s]
+Test accuracy: 86.94% : 100%|████████████████| 34/34 [00:00<00:00, 193.88it/s]
+Train loss: 0.034737: 100%|███████████████████| 34/34 [00:00<00:00, 97.32it/s]
+Train accuracy: 100.00% : 100%|██████████████| 34/34 [00:00<00:00, 194.59it/s]
+Test accuracy: 87.13% : 100%|████████████████| 34/34 [00:00<00:00, 184.51it/s]
+2 epochs
+3 epochs
+best test accuracuy:  87.12962962962963

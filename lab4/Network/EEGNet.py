@@ -5,22 +5,23 @@ import torch.nn as nn
 # inherit from torch.nn
 class EEGNet(nn.Module):
     def __init__(self, activation_func):
-        
+        super(EEGNet, self).__init__()
+
         activation = {
-            'RELU' : nn.RELU(),
-            'LeakyRELU' : nn.LeakyReLU(),
+            'ReLU' : nn.ReLU(),
+            'LeakyReLU' : nn.LeakyReLU(),
             'ELU' : nn.ELU()
         }
         
         self.firstconv = nn.Sequential(
             # because the kernal size is different, so we choose different padding in height and width
             # Height and Width is different!
-            nn.Conv2d(1,16, kernal_size=(1,51), stride = (1, 1), padding=(0,25), bias=False),
+            nn.Conv2d(1,16, kernel_size=(1,51), stride = (1, 1), padding=(0,25), bias=False),
             nn.BatchNorm2d(16, affine=True)
         )
         
         self.depthwiseConv = nn.Sequential(
-            nn.Conv2d(16,32,kernal_size=(2,1),stride=(1,1),groups=16,bias=False),
+            nn.Conv2d(16,32,kernel_size=(2,1),stride=(1,1),groups=16,bias=False),
             nn.BatchNorm2d(32, affine=True),
             activation[activation_func],
             nn.AvgPool2d(kernel_size=(1, 4), stride=(1 , 4), padding=0),
@@ -32,7 +33,7 @@ class EEGNet(nn.Module):
             # learn gamma and beta 
             nn.BatchNorm2d(32, affine=True),
             activation[activation_func],
-            nn.AvgPool2d(1,8),
+            nn.AvgPool2d((1, 8), stride=(1, 8), padding = 0),
             nn.Dropout(p=0.25)
         )
         
