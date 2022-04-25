@@ -720,6 +720,7 @@ public:
 					
 					// initialize the future state
 					S_future = move->after_state();
+					
 					// if popout 2 in empty position
 					S_future.set(empty_position[i],1);
 					// the chance is 0.9/empty_position_count
@@ -956,7 +957,7 @@ int main(int argc, const char* argv[]) {
 
 	// restore the model from file
 	// load weight
-	tdl.load("");
+	tdl.load("./weight/a_0.01_t_250000");
 
 	// train the model
 	std::vector<state> path;

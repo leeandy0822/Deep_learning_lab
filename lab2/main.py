@@ -70,11 +70,11 @@ if __name__ == "__main__":
     # loss function 
     parser.add_argument("loss_function", nargs='?',default="LMS",help= "CE (cross entropy)or LMS ")
     # learning rate
-    parser.add_argument("learning_rate", nargs='?',default=0.01, type = float,help= "learning_rate, default is 0.01 ")
+    parser.add_argument("learning_rate", nargs='?',default=0.02, type = float,help= "learning_rate, default is 0.01 ")
     # epochs
-    parser.add_argument("epochs", nargs='?',default=50000, type = int,help= "epochs, default is 10000 ")
+    parser.add_argument("epochs", nargs='?',default=30000, type = int,help= "epochs, default is 10000 ")
     # dataset
-    parser.add_argument("data", nargs='?',default="linear",help= "linear or XOR datatype")
+    parser.add_argument("data", nargs='?',default="XOR",help= "linear or XOR datatype")
     
     args = parser.parse_args()
     

@@ -1,0 +1,24 @@
+{
+    "os": "Linux-5.13.0-40-generic-x86_64-with-glibc2.29",
+    "python": "3.8.10",
+    "heartbeatAt": "2022-04-24T13:43:30.388123",
+    "startedAt": "2022-04-24T13:43:29.478612",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "gpu_count": 1,
+    "cpu_count": 16,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "main.py",
+    "codePath": "lab5/main.py",
+    "git": {
+        "remote": "git@github.com:leeandy0822/Deep_learning_lab.git",
+        "commit": "a813637d3609dbfffafc4e2922995dca340633b8"
+    },
+    "email": "leeandy90833@gmail.com",
+    "root": "/home/leeandy/Deep_learning_lab",
+    "host": "leeandy-msi",
+    "username": "leeandy",
+    "executable": "/usr/bin/python3"
+}

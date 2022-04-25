@@ -1,0 +1,62 @@
+2022-04-24 21:43:29,999 INFO    MainThread:65028 [internal.py:wandb_internal():92] W&B internal server running at pid: 65028, started at: 2022-04-24 21:43:29.999607
+2022-04-24 21:43:30,001 INFO    WriterThread:65028 [datastore.py:open_for_write():77] open: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/run-25awsqwm.wandb
+2022-04-24 21:43:30,001 DEBUG   SenderThread:65028 [sender.py:send():235] send: header
+2022-04-24 21:43:30,001 DEBUG   SenderThread:65028 [sender.py:send():235] send: run
+2022-04-24 21:43:30,232 INFO    SenderThread:65028 [dir_watcher.py:__init__():169] watching files in: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files
+2022-04-24 21:43:30,232 INFO    SenderThread:65028 [sender.py:_start_run_threads():812] run started: 25awsqwm with start time 1650807809
+2022-04-24 21:43:30,232 DEBUG   HandlerThread:65028 [handler.py:handle_request():141] handle_request: check_version
+2022-04-24 21:43:30,232 DEBUG   SenderThread:65028 [sender.py:send():235] send: summary
+2022-04-24 21:43:30,232 INFO    SenderThread:65028 [sender.py:_save_file():947] saving file wandb-summary.json with policy end
+2022-04-24 21:43:30,232 DEBUG   SenderThread:65028 [sender.py:send_request():249] send_request: check_version
+2022-04-24 21:43:30,386 DEBUG   HandlerThread:65028 [handler.py:handle_request():141] handle_request: run_start
+2022-04-24 21:43:30,388 DEBUG   HandlerThread:65028 [meta.py:__init__():37] meta init
+2022-04-24 21:43:30,388 DEBUG   HandlerThread:65028 [meta.py:__init__():51] meta init done
+2022-04-24 21:43:30,388 DEBUG   HandlerThread:65028 [meta.py:probe():211] probe
+2022-04-24 21:43:30,393 DEBUG   HandlerThread:65028 [meta.py:_setup_git():201] setup git
+2022-04-24 21:43:30,401 DEBUG   HandlerThread:65028 [meta.py:_setup_git():208] setup git done
+2022-04-24 21:43:30,402 DEBUG   HandlerThread:65028 [meta.py:_save_pip():55] save pip
+2022-04-24 21:43:30,402 DEBUG   HandlerThread:65028 [meta.py:_save_pip():69] save pip done
+2022-04-24 21:43:30,402 DEBUG   HandlerThread:65028 [meta.py:probe():249] probe done
+2022-04-24 21:43:30,419 DEBUG   SenderThread:65028 [sender.py:send():235] send: files
+2022-04-24 21:43:30,420 INFO    SenderThread:65028 [sender.py:_save_file():947] saving file wandb-metadata.json with policy now
+2022-04-24 21:43:30,422 DEBUG   HandlerThread:65028 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-24 21:43:30,422 DEBUG   SenderThread:65028 [sender.py:send_request():249] send_request: stop_status
+2022-04-24 21:43:30,623 DEBUG   SenderThread:65028 [sender.py:send():235] send: telemetry
+2022-04-24 21:43:30,623 DEBUG   SenderThread:65028 [sender.py:send():235] send: telemetry
+2022-04-24 21:43:30,623 DEBUG   SenderThread:65028 [sender.py:send():235] send: config
+2022-04-24 21:43:30,623 DEBUG   SenderThread:65028 [sender.py:send():235] send: config
+2022-04-24 21:43:30,623 DEBUG   SenderThread:65028 [sender.py:send():235] send: config
+2022-04-24 21:43:30,981 INFO    Thread-11 :65028 [upload_job.py:push():137] Uploaded file /tmp/tmp58mol5o5wandb/25koyz9j-wandb-metadata.json
+2022-04-24 21:43:31,233 INFO    Thread-7  :65028 [dir_watcher.py:_on_file_created():217] file/dir created: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/output.log
+2022-04-24 21:43:31,233 INFO    Thread-7  :65028 [dir_watcher.py:_on_file_created():217] file/dir created: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/wandb-metadata.json
+2022-04-24 21:43:31,233 INFO    Thread-7  :65028 [dir_watcher.py:_on_file_created():217] file/dir created: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/requirements.txt
+2022-04-24 21:43:31,233 INFO    Thread-7  :65028 [dir_watcher.py:_on_file_created():217] file/dir created: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/wandb-summary.json
+2022-04-24 21:43:32,400 DEBUG   SenderThread:65028 [sender.py:send():235] send: telemetry
+2022-04-24 21:43:33,233 INFO    Thread-7  :65028 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/output.log
+2022-04-24 21:43:35,233 INFO    Thread-7  :65028 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/output.log
+2022-04-24 21:43:39,234 INFO    Thread-7  :65028 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/output.log
+2022-04-24 21:43:43,235 INFO    Thread-7  :65028 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/output.log
+2022-04-24 21:43:45,623 DEBUG   HandlerThread:65028 [handler.py:handle_request():141] handle_request: stop_status
+2022-04-24 21:43:45,623 DEBUG   SenderThread:65028 [sender.py:send_request():249] send_request: stop_status
+2022-04-24 21:43:48,530 WARNING MainThread:65028 [internal.py:wandb_internal():155] Internal process interrupt: 1
+2022-04-24 21:43:49,236 INFO    Thread-7  :65028 [dir_watcher.py:_on_file_modified():230] file/dir modified: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/output.log
+2022-04-24 21:43:50,725 DEBUG   SenderThread:65028 [sender.py:send():235] send: telemetry
+2022-04-24 21:43:51,157 WARNING MainThread:65028 [internal.py:wandb_internal():155] Internal process interrupt: 2
+2022-04-24 21:43:51,157 ERROR   MainThread:65028 [internal.py:wandb_internal():158] Internal process interrupted.
+2022-04-24 21:43:51,726 INFO    SenderThread:65028 [sender.py:finish():1107] shutting down sender
+2022-04-24 21:43:51,726 INFO    SenderThread:65028 [dir_watcher.py:finish():283] shutting down directory watcher
+2022-04-24 21:43:51,726 INFO    WriterThread:65028 [datastore.py:close():281] close: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/run-25awsqwm.wandb
+2022-04-24 21:43:51,727 INFO    HandlerThread:65028 [handler.py:finish():790] shutting down handler
+2022-04-24 21:43:52,238 INFO    SenderThread:65028 [dir_watcher.py:finish():313] scan: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files
+2022-04-24 21:43:52,238 INFO    SenderThread:65028 [dir_watcher.py:finish():327] scan save: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/config.yaml config.yaml
+2022-04-24 21:43:52,239 INFO    SenderThread:65028 [dir_watcher.py:finish():327] scan save: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/wandb-metadata.json wandb-metadata.json
+2022-04-24 21:43:52,239 INFO    SenderThread:65028 [dir_watcher.py:finish():327] scan save: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/output.log output.log
+2022-04-24 21:43:52,239 INFO    SenderThread:65028 [dir_watcher.py:finish():327] scan save: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/requirements.txt requirements.txt
+2022-04-24 21:43:52,240 INFO    SenderThread:65028 [dir_watcher.py:finish():327] scan save: /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/wandb-summary.json wandb-summary.json
+2022-04-24 21:43:52,246 INFO    SenderThread:65028 [file_pusher.py:finish():145] shutting down file pusher
+2022-04-24 21:43:52,246 INFO    SenderThread:65028 [file_pusher.py:join():150] waiting for file pusher
+2022-04-24 21:43:52,762 INFO    Thread-13 :65028 [upload_job.py:push():137] Uploaded file /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/output.log
+2022-04-24 21:43:52,767 INFO    Thread-14 :65028 [upload_job.py:push():137] Uploaded file /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/requirements.txt
+2022-04-24 21:43:52,860 INFO    Thread-15 :65028 [upload_job.py:push():137] Uploaded file /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/wandb-summary.json
+2022-04-24 21:43:53,105 INFO    Thread-12 :65028 [upload_job.py:push():137] Uploaded file /home/leeandy/Deep_learning_lab/lab5/wandb/run-20220424_214329-25awsqwm/files/config.yaml
+2022-04-24 21:43:53,937 INFO    MainThread:65028 [internal.py:handle_exit():82] Internal process exited
