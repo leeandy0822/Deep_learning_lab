@@ -183,11 +183,23 @@ def pred(x, cond, modules, epoch, args):
                 skip = h_seq[i-1][1]
             else:
                 h = h_seq[i-1][0]
-
+                
+            if i > 1:
+                previous_img = x_pred
+                pr_latent = modules['encoder'](previous_img)
+                h_no_teacher = pr_latent[0]
+                
+            else:
+                h_no_teacher = h    
             c = cond[:, i].float()
 
             z_t, mu, logvar = modules['posterior'](h_target)
-            h_pred = modules['frame_predictor'](torch.cat([h, z_t,c], 1))
+            
+            if i > 1:
+                h_pred = modules['frame_predictor'](torch.cat([h, z_t,c], 1))
+            else:
+                h_pred = modules['frame_predictor'](torch.cat([h_no_teacher, z_t,c], 1))
+
             x_pred = modules['decoder']([h_pred, skip])
             
             if i > 1 :

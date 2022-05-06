@@ -30,11 +30,11 @@ def parse_args():
     parser.add_argument('--data_root', default='./processed_data', help='root directory for data')
     parser.add_argument('--optimizer', default='adam', help='optimizer to train with')
     parser.add_argument('--niter', type=int, default=300, help='number of epochs to train for')
-    parser.add_argument('--epoch_size', type=int, default= 200, help='epoch size')
+    parser.add_argument('--epoch_size', type=int, default= 600, help='epoch size')
     parser.add_argument('--tfr', type=float, default=1.0, help='teacher forcing ratio (0 ~ 1)')
-    parser.add_argument('--tfr_start_decay_epoch', type=int, default= 100, help='The epoch that teacher forcing ratio become decreasing')
+    parser.add_argument('--tfr_start_decay_epoch', type=int, default= 200, help='The epoch that teacher forcing ratio become decreasing')
     parser.add_argument('--tfr_decay_step', type=float, default=0.99, help='The decay step size of teacher forcing ratio (0 ~ 1)')
-    parser.add_argument('--tfr_lower_bound', type=float, default=0.5, help='The lower bound of teacher forcing ratio for scheduling teacher forcing ratio (0 ~ 1)')
+    parser.add_argument('--tfr_lower_bound', type=float, default=0.6, help='The lower bound of teacher forcing ratio for scheduling teacher forcing ratio (0 ~ 1)')
     parser.add_argument('--kl_anneal_cyclical', default=False, action='store_true', help='use cyclical mode')
     parser.add_argument('--kl_anneal_ratio', type=float, default=2, help='The decay ratio of kl annealing')
     parser.add_argument('--kl_anneal_cycle', type=int, default=3, help='The number of cycle for kl annealing (if use cyclical mode)')
@@ -99,8 +99,8 @@ def train(x, cond, modules, optimizer, kl_anneal, args):
         
         if use_teacher_forcing:
             h_pred = modules['frame_predictor'](torch.cat([h, z_t, c], 1))
+            
         else:
-            print("without teacher")
             h_pred = modules['frame_predictor'](torch.cat([h_no_teacher, z_t, c], 1))
             
         x_pred = modules['decoder']([h_pred, skip])
@@ -122,7 +122,7 @@ class kl_annealing():
         super().__init__()
         
         iteration = args.niter * args.epoch_size
-        
+        self.beta = 0
         self.iteration = 0
         self.cyclical_bool = args.kl_anneal_cyclical
         
@@ -139,7 +139,7 @@ class kl_annealing():
         
         beta = self.beta_list[self.iteration]
         self.update()
-        
+        self.beta = beta
         return beta
     
     def frange_cycle_linear(self, start, stop, n_epoch, n_cycle=3, ratio=0.5):
@@ -320,7 +320,9 @@ def main():
 
         with open('./{}/train_record.txt'.format(args.log_dir), 'a') as train_record:
             train_record.write(('[epoch: %02d] loss: %.5f | mse loss: %.5f | kld loss: %.5f\n' % (epoch, epoch_loss  / args.epoch_size, epoch_mse / args.epoch_size, epoch_kld / args.epoch_size)))
-        
+            train_record.write(('teacher ratio : %.2f\n' % (args.tfr)))
+            train_record.write(('kl_annealing_beta : %.2f\n' % kl_anneal.beta ))
+            
         frame_predictor.eval()
         encoder.eval()
         decoder.eval()
