@@ -1,3 +1,13 @@
 weight/
 data/
+*.pdf
+*.md
+*.zip
+*.ipynb
+
+svg/
+processed_data/
+logs/
+.*
+__pycache__/
 
