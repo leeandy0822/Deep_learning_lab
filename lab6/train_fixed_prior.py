@@ -66,22 +66,18 @@ def train(x, cond, modules, optimizer, kl_anneal, args):
     modules['encoder'].zero_grad()
     modules['decoder'].zero_grad()
 
-    # initialize the hidden state.
     modules['frame_predictor'].hidden = modules['frame_predictor'].init_hidden()
     modules['posterior'].hidden = modules['posterior'].init_hidden()
+    
     mse = 0
     kld = 0
     use_teacher_forcing = True if random.random() < args.tfr else False
-    
     
     # x : [batch , 12 , 3 , 64 , 64] h_seq : [12, batch ,128]
     h_seq = [ modules['encoder'](x[:,i]) for i in range(args.n_past + args.n_future)] 
 
     for i in range(1, args.n_past + args.n_future):
-        
         h_target = h_seq[i][0]
-        #print(h_seq[i][0].size())  # [6,128]
-
         
         if args.last_frame_skip or i < args.n_past:	
             h = h_seq[i-1][0] 
@@ -95,13 +91,11 @@ def train(x, cond, modules, optimizer, kl_anneal, args):
             h_no_teacher = pr_latent[0]
         else:
             h_no_teacher = h    
-        
             
         c = cond[:, i].float()
 
         z_t, mu, logvar = modules['posterior'](h_target)
         h_pred = modules['frame_predictor'](torch.cat([h, z_t, c], 1))
-        
         
         if use_teacher_forcing:
             h_pred = modules['frame_predictor'](torch.cat([h, z_t, c], 1))
@@ -110,8 +104,7 @@ def train(x, cond, modules, optimizer, kl_anneal, args):
             h_pred = modules['frame_predictor'](torch.cat([h_no_teacher, z_t, c], 1))
             
         x_pred = modules['decoder']([h_pred, skip])
-            
-        x_pred = modules['decoder']([h_pred, skip])
+        
         mse += mse_criterion(x_pred, x[:,i])
         kld += kl_criterion(mu, logvar,args)
 
