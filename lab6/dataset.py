@@ -36,6 +36,7 @@ class bair_robot_pushing_dataset(Dataset):
         self.seed_is_set = False # multi threaded loading
         self.d = 0
         self.d_now = None
+        self.batch = args.batch_size
         
     def set_seed(self, seed):
         if not self.seed_is_set:
@@ -49,8 +50,11 @@ class bair_robot_pushing_dataset(Dataset):
                 self.d+=1
         else:
             d = self.dirs[np.random.randint(len(self.dirs))]
+        
         self.d_now = d
+    
     def __len__(self):
+        
         return len(self.dirs)
 
         

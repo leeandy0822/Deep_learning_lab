@@ -2,6 +2,7 @@ import argparse
 import itertools
 import os
 import random
+import wandb
 
 import numpy as np
 import torch
@@ -22,9 +23,9 @@ torch.backends.cudnn.benchmark = True
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--lr', default=0.002, type=float, help='learning rate')
+    parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
     parser.add_argument('--beta1', default=0.9, type=float, help='momentum term for adam')
-    parser.add_argument('--batch_size', default=6, type=int, help='batch size')
+    parser.add_argument('--batch_size', default=10, type=int, help='batch size')
     parser.add_argument('--log_dir', default='./logs/fp', help='base directory to save logs')
     parser.add_argument('--model_dir', default='', help='base directory to save logs')
     parser.add_argument('--data_root', default='./processed_data', help='root directory for data')
@@ -32,9 +33,9 @@ def parse_args():
     parser.add_argument('--niter', type=int, default=300, help='number of epochs to train for')
     parser.add_argument('--epoch_size', type=int, default= 600, help='epoch size')
     parser.add_argument('--tfr', type=float, default=1.0, help='teacher forcing ratio (0 ~ 1)')
-    parser.add_argument('--tfr_start_decay_epoch', type=int, default= 200, help='The epoch that teacher forcing ratio become decreasing')
-    parser.add_argument('--tfr_decay_step', type=float, default=0.99, help='The decay step size of teacher forcing ratio (0 ~ 1)')
-    parser.add_argument('--tfr_lower_bound', type=float, default=0.6, help='The lower bound of teacher forcing ratio for scheduling teacher forcing ratio (0 ~ 1)')
+    parser.add_argument('--tfr_start_decay_epoch', type=int, default= 40, help='The epoch that teacher forcing ratio become decreasing')
+    parser.add_argument('--tfr_decay_step', type=float, default=0.01, help='The decay step size of teacher forcing ratio (0 ~ 1)')
+    parser.add_argument('--tfr_lower_bound', type=float, default=0.0, help='The lower bound of teacher forcing ratio for scheduling teacher forcing ratio (0 ~ 1)')
     parser.add_argument('--kl_anneal_cyclical', default=False, action='store_true', help='use cyclical mode')
     parser.add_argument('--kl_anneal_ratio', type=float, default=2, help='The decay ratio of kl annealing')
     parser.add_argument('--kl_anneal_cycle', type=int, default=3, help='The number of cycle for kl annealing (if use cyclical mode)')
@@ -120,41 +121,26 @@ class kl_annealing():
     
     def __init__(self, args):
         super().__init__()
-        
-        iteration = args.niter * args.epoch_size
-        self.beta = 0
-        self.iteration = 0
-        self.cyclical_bool = args.kl_anneal_cyclical
-        
-        if args.kl_anneal_cyclical:
-            self.beta_list = self.frange_cycle_linear(0, 1, iteration, args.kl_anneal_cycle)
-        else:
-            self.beta_list = self.frange_cycle_linear(0.0, 1.0, iteration, 1, 0.25)
-
-        
+        self.total_epochs = args.niter
+        self.kl_anneal_cycle = args.kl_anneal_cycle
+        self.beta_grad = (self.kl_anneal_cycle*2)/self.total_epochs
+        self.mode = 'cyclical' if args.kl_anneal_cyclical else 'monotonic'
+        self.beta = 0.0
+        self.count = 0
+    
     def update(self):
-        self.iteration += 1
+        self.count += 1
+        if self.mode == 'cyclical' :
+            self.beta += self.beta_grad
+            self.beta = 1.0 if self.beta > 1.0 else self.beta 
+            if self.count % int(self.total_epochs/self.kl_anneal_cycle)==0 : 
+                self.beta = 0.0 
+        else :
+            self.beta += self.beta_grad
+            self.beta = 1.0 if self.beta > 1.0 else self.beta 
     
     def get_beta(self):
-        
-        beta = self.beta_list[self.iteration]
-        self.update()
-        self.beta = beta
-        return beta
-    
-    def frange_cycle_linear(self, start, stop, n_epoch, n_cycle=3, ratio=0.5):
-        L = np.ones(n_epoch)
-        period = n_epoch/n_cycle
-        step = (stop-start)/(period*ratio) # linear schedule
-
-        for c in range(n_cycle):
-
-            v , i = start , 0
-            while v <= stop and (int(i+c*period) < n_epoch):
-                L[int(i+c*period)] = v
-                v += step
-                i += 1
-        return L    
+        return self.beta
 
 
 def main():
@@ -164,12 +150,13 @@ def main():
         device = 'cuda'
     else:
         device = 'cpu'
+        
     
     assert args.n_past + args.n_future <= 30 and args.n_eval <= 30
     assert 0 <= args.tfr and args.tfr <= 1
     assert 0 <= args.tfr_start_decay_epoch 
     assert 0 <= args.tfr_decay_step and args.tfr_decay_step <= 1
-
+ 
     if args.model_dir != '':
         # load model and continue training from checkpoint
         saved_model = torch.load('%s/model.pth' % args.model_dir)
@@ -182,12 +169,20 @@ def main():
         args.log_dir = '%s/continued' % args.log_dir
         start_epoch = saved_model['last_epoch']
     else:
-        name = 'rnn_size=%d-predictor-posterior-rnn_layers=%d-%d-n_past=%d-n_future=%d-lr=%.4f-g_dim=%d-z_dim=%d-last_frame_skip=%s-beta=%.7f'\
-            % (args.rnn_size, args.predictor_rnn_layers, args.posterior_rnn_layers, args.n_past, args.n_future, args.lr, args.g_dim, args.z_dim, args.last_frame_skip, args.beta)
+        fname = 'annealcycle = %d kl_anneal_ratio=%d beta = %d tfr_start_decay_epoch=%d tfr_decay_step=%d'\
+            % (args.kl_anneal_cyclical,args.kl_anneal_ratio, args.beta, args.tfr_start_decay_epoch,args.tfr_decay_step )
 
-        args.log_dir = '%s/%s' % (args.log_dir, name)
+        args.log_dir = '%s/%s' % (args.log_dir, fname)
         niter = args.niter
         start_epoch = 0
+
+    wandb.init(project = "cvae", entity="leeandy0822", name= fname)
+    
+    wandb.config = {
+    "learning_rate": 0.001,
+    "epochs": 300,
+    "batch_size": 6
+    }
 
     os.makedirs(args.log_dir, exist_ok=True)
     os.makedirs('%s/gen/' % args.log_dir, exist_ok=True)
@@ -306,10 +301,15 @@ def main():
             epoch_loss += loss
             epoch_mse += mse
             epoch_kld += kld
-        
+            wandb.log({"iter_loss":loss})
+            wandb.log({"iter_mse":mse})
+            wandb.log({"iter_kld":kld})
+
+
+
         if epoch >= args.tfr_start_decay_epoch:
             ### Update teacher forcing ratio ###
-            args.tfr = args.tfr*args.tfr_decay_step
+            args.tfr = args.tfr - args.tfr_decay_step
             
             lb = args.tfr_lower_bound
             
@@ -318,6 +318,15 @@ def main():
     
         progress.update(1)
 
+        kl_anneal.update()
+        
+        wandb.log({"epoch_loss":epoch_loss})
+        wandb.log({"epoch_mse":epoch_mse})
+        wandb.log({"epoch_kld":epoch_kld})
+        wandb.log({"kl_annealing ratio": kl_anneal.beta})
+        wandb.log({"teacher forcing ratio":args.tfr})
+
+        
         with open('./{}/train_record.txt'.format(args.log_dir), 'a') as train_record:
             train_record.write(('[epoch: %02d] loss: %.5f | mse loss: %.5f | kld loss: %.5f\n' % (epoch, epoch_loss  / args.epoch_size, epoch_mse / args.epoch_size, epoch_kld / args.epoch_size)))
             train_record.write(('teacher ratio : %.2f\n' % (args.tfr)))
@@ -353,13 +362,16 @@ def main():
                 psnr_list.append(psnr)
 
 
-            tt = (np.transpose(pred_seq_[1,1,:,:], (1, 2, 0)) + 1) / 2.0 * 255.0
+
+            tt = (np.transpose(pred_seq_[1,1,:,:], (1, 2, 0)) + 1) * 255.0
             data = Image.fromarray(np.uint8(tt))
             
             data.save('./psnr_gen/psnr:{now_epoch}.png'.format(now_epoch = epoch))
             
 
             ave_psnr = np.mean(np.concatenate(psnr))
+            wandb.log({"average psnr":ave_psnr})
+
             with open('./{}/train_record.txt'.format(args.log_dir), 'a') as train_record:
                 train_record.write(('====================== validate psnr = {:.5f} ========================\n'.format(ave_psnr)))
 
@@ -374,6 +386,7 @@ def main():
                     'args': args,
                     'last_epoch': epoch},
                     '%s/model.pth' % args.log_dir)
+                    
 
         if epoch % 20 == 0:
             try:

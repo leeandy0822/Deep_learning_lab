@@ -1,0 +1,1 @@
+{"iter_loss": 0.006749296560883522, "_timestamp": 1651935623, "_runtime": 1171, "_step": 9748, "iter_mse": 0.006739131485422452, "iter_kld": 0.00010165250084052484, "epoch_loss": 3.840203190843267, "epoch_mse": 3.8265882367268187, "epoch_kld": 0.17018689363612777, "kl_annealing ratio": 0.1, "teacher forcing ratio": 1.0, "average psnr": 22.305941788751337}

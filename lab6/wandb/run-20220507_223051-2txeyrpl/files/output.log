@@ -1,0 +1,34 @@
+Random Seed:  1
+Namespace(batch_size=12, beta=0.0001, beta1=0.9, cond_dim=7, cuda=True, data_root='./processed_data', epoch_size=600, g_dim=128, kl_anneal_cycle=3, kl_anneal_cyclical=False, kl_anneal_ratio=2, last_frame_skip=False, log_dir='./logs/fp/annealcycle = 0 kl_anneal_ratio=2 beta = 0 tfr_start_decay_epoch=40 tfr_decay_step=0', lr=0.001, model_dir='', n_eval=12, n_future=10, n_past=2, niter=300, num_workers=4, optimizer='adam', posterior_rnn_layers=1, predictor_rnn_layers=2, rnn_size=256, seed=1, tfr=1.0, tfr_decay_step=0.01, tfr_lower_bound=0.0, tfr_start_decay_epoch=40, z_dim=64)
+  0%|                                                                       | 0/300 [00:00<?, ?it/s]Traceback (most recent call last):
+  File "train_fixed_prior.py", line 403, in <module>
+    main()
+  File "train_fixed_prior.py", line 300, in main
+    loss, mse, kld = train(x, cond, modules, optimizer, kl_anneal, args)
+  File "train_fixed_prior.py", line 115, in train
+    optimizer.step()
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/optim/optimizer.py", line 89, in wrapper
+    return func(*args, **kwargs)
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/autograd/grad_mode.py", line 27, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/optim/adam.py", line 108, in step
+    F.adam(params_with_grad,
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/optim/_functional.py", line 92, in adam
+    denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(eps)
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "train_fixed_prior.py", line 403, in <module>
+    main()
+  File "train_fixed_prior.py", line 300, in main
+    loss, mse, kld = train(x, cond, modules, optimizer, kl_anneal, args)
+  File "train_fixed_prior.py", line 115, in train
+    optimizer.step()
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/optim/optimizer.py", line 89, in wrapper
+    return func(*args, **kwargs)
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/autograd/grad_mode.py", line 27, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/optim/adam.py", line 108, in step
+    F.adam(params_with_grad,
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/optim/_functional.py", line 92, in adam
+    denom = (exp_avg_sq.sqrt() / math.sqrt(bias_correction2)).add_(eps)
+KeyboardInterrupt
