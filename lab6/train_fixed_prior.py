@@ -17,26 +17,31 @@ from txaio import use_asyncio
 from dataset import bair_robot_pushing_dataset
 from models.lstm import gaussian_lstm, lstm
 from models.vgg_64 import vgg_decoder, vgg_encoder
-from utils import init_weights, kl_criterion, mse_metric, plot_pred, plot_rec, finn_eval_x, pred
+from utils import init_weights, kl_criterion, mse_metric, plot_pred, finn_eval_x, pred
 from PIL import Image
 torch.backends.cudnn.benchmark = True
+evaluation = False
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--lr', default=0.001, type=float, help='learning rate')
+    parser.add_argument('--lr', default=0.002, type=float, help='learning rate')
     parser.add_argument('--beta1', default=0.9, type=float, help='momentum term for adam')
-    parser.add_argument('--batch_size', default=10, type=int, help='batch size')
+    parser.add_argument('--batch_size', default=12, type=int, help='batch size')
     parser.add_argument('--log_dir', default='./logs/fp', help='base directory to save logs')
+    
+    # Load pretrained 
+    # parser.add_argument('--model_dir', default='./logs/fp/fast_mono/', help='base directory to save logs')
+    
     parser.add_argument('--model_dir', default='', help='base directory to save logs')
     parser.add_argument('--data_root', default='./processed_data', help='root directory for data')
     parser.add_argument('--optimizer', default='adam', help='optimizer to train with')
     parser.add_argument('--niter', type=int, default=300, help='number of epochs to train for')
     parser.add_argument('--epoch_size', type=int, default= 600, help='epoch size')
     parser.add_argument('--tfr', type=float, default=1.0, help='teacher forcing ratio (0 ~ 1)')
-    parser.add_argument('--tfr_start_decay_epoch', type=int, default= 40, help='The epoch that teacher forcing ratio become decreasing')
+    parser.add_argument('--tfr_start_decay_epoch', type=int, default= 30, help='The epoch hat teacher forcing ratio become decreasing')
     parser.add_argument('--tfr_decay_step', type=float, default=0.01, help='The decay step size of teacher forcing ratio (0 ~ 1)')
     parser.add_argument('--tfr_lower_bound', type=float, default=0.0, help='The lower bound of teacher forcing ratio for scheduling teacher forcing ratio (0 ~ 1)')
-    parser.add_argument('--kl_anneal_cyclical', default=False, action='store_true', help='use cyclical mode')
+    parser.add_argument('--kl_anneal_cyclical', default= True, action='store_true', help='use cyclical mode')
     parser.add_argument('--kl_anneal_ratio', type=float, default=2, help='The decay ratio of kl annealing')
     parser.add_argument('--kl_anneal_cycle', type=int, default=3, help='The number of cycle for kl annealing (if use cyclical mode)')
     parser.add_argument('--seed', default=1, type=int, help='manual seed')
@@ -49,12 +54,13 @@ def parse_args():
     parser.add_argument('--posterior_rnn_layers', type=int, default=1, help='number of layers')
     parser.add_argument('--predictor_rnn_layers', type=int, default=2, help='number of layers')
     parser.add_argument('--z_dim', type=int, default=64, help='dimensionality of z_t')
-    parser.add_argument('--cond_dim', type=int, default=7, help='dimensionality of z_t')
+    parser.add_argument('--cond_dim', type=int, default=15, help='dimensionality of z_t')
     parser.add_argument('--g_dim', type=int, default=128, help='dimensionality of encoder output vector and decoder input vector')
     parser.add_argument('--beta', type=float, default=0.0001, help='weighting on KL to prior')
     parser.add_argument('--num_workers', type=int, default=4, help='number of data loading threads')
     parser.add_argument('--last_frame_skip', action='store_true', help='if true, skip connections go between frame t and frame t+t rather than last ground truth frame')
     parser.add_argument('--cuda', default=True, action='store_true')  
+    parser.add_argument('--wandb', default=True, action='store_true')  
 
     args = parser.parse_args()
     return args
@@ -157,6 +163,8 @@ def main():
     assert 0 <= args.tfr_start_decay_epoch 
     assert 0 <= args.tfr_decay_step and args.tfr_decay_step <= 1
  
+ 
+ 
     if args.model_dir != '':
         # load model and continue training from checkpoint
         saved_model = torch.load('%s/model.pth' % args.model_dir)
@@ -168,21 +176,23 @@ def main():
         args.model_dir = model_dir
         args.log_dir = '%s/continued' % args.log_dir
         start_epoch = saved_model['last_epoch']
+    
     else:
-        fname = 'annealcycle = %d kl_anneal_ratio=%d beta = %d tfr_start_decay_epoch=%d tfr_decay_step=%d'\
-            % (args.kl_anneal_cyclical,args.kl_anneal_ratio, args.beta, args.tfr_start_decay_epoch,args.tfr_decay_step )
+        fname = 'batch = %d annealcycle = %d kl_anneal_ratio=%d beta = %d tfr_start_decay_epoch=%d tfr_decay_step=%d'\
+            % (args.batch_size, args.kl_anneal_cyclical,args.kl_anneal_ratio, args.beta, args.tfr_start_decay_epoch,args.tfr_decay_step )
 
         args.log_dir = '%s/%s' % (args.log_dir, fname)
         niter = args.niter
         start_epoch = 0
 
-    wandb.init(project = "cvae", entity="leeandy0822", name= fname)
-    
-    wandb.config = {
-    "learning_rate": 0.001,
-    "epochs": 300,
-    "batch_size": 6
-    }
+        if args.wandb:
+            wandb.init(project = "cvae", entity="leeandy0822", name= fname)
+            
+            wandb.config = {
+            "learning_rate": args.lr,
+            "epochs": args.niter,
+            "batch_size": args.batch_size
+            }
 
     os.makedirs(args.log_dir, exist_ok=True)
     os.makedirs('%s/gen/' % args.log_dir, exist_ok=True)
@@ -220,6 +230,7 @@ def main():
         encoder.apply(init_weights)
         decoder.apply(init_weights)
     
+    
     # --------- transfer to device ------------------------------------
     frame_predictor.to(device)
     posterior.to(device)
@@ -229,6 +240,8 @@ def main():
     # --------- load a dataset ------------------------------------
     train_data = bair_robot_pushing_dataset(args, 'train')
     validate_data = bair_robot_pushing_dataset(args, 'validate')
+    test_data = bair_robot_pushing_dataset(args, 'test')
+    
     
     train_loader = DataLoader(train_data,
                             num_workers=args.num_workers,
@@ -248,6 +261,15 @@ def main():
                             pin_memory=True)
 
     validate_iterator = iter(validate_loader)
+    
+    test_loader = DataLoader(test_data,
+                        num_workers=args.num_workers,
+                        batch_size=args.batch_size,
+                        shuffle=True,
+                        drop_last=True,
+                        pin_memory=True)
+    
+    test_iterator = iter(test_loader)
     
     # ---------------- optimizers ----------------
     if args.optimizer == 'adam':
@@ -270,136 +292,173 @@ def main():
         'encoder': encoder,
         'decoder': decoder,
     }
+    
+    
     # --------- training loop ------------------------------------
 
     progress = tqdm(total=args.niter)
     best_val_psnr = 0
     
-    for epoch in range(start_epoch, start_epoch + niter):
-        frame_predictor.train()
-        posterior.train()
-        encoder.train()
-        decoder.train()
-
-        epoch_loss = 0
-        epoch_mse = 0
-        epoch_kld = 0
-
-        for i in range(args.epoch_size):
-                
-            try:
-                x, cond = next(train_iterator)
-                
-            except StopIteration:
-                train_iterator = iter(train_loader)
-                x, cond = next(train_iterator)
-            
-            x, cond = x.type(torch.FloatTensor),cond.type(torch.FloatTensor)
-            x, cond = x.to(device),cond.to(device)
-                
-            loss, mse, kld = train(x, cond, modules, optimizer, kl_anneal, args)
-            epoch_loss += loss
-            epoch_mse += mse
-            epoch_kld += kld
-            wandb.log({"iter_loss":loss})
-            wandb.log({"iter_mse":mse})
-            wandb.log({"iter_kld":kld})
-
-
-
-        if epoch >= args.tfr_start_decay_epoch:
-            ### Update teacher forcing ratio ###
-            args.tfr = args.tfr - args.tfr_decay_step
-            
-            lb = args.tfr_lower_bound
-            
-            if args.tfr < lb:
-                args.tfr = lb
     
-        progress.update(1)
-
-        kl_anneal.update()
+    if evaluation:
+        frame_predictor.to(device)
+        posterior.to(device)
+        encoder.to(device)
+        decoder.to(device)
         
-        wandb.log({"epoch_loss":epoch_loss})
-        wandb.log({"epoch_mse":epoch_mse})
-        wandb.log({"epoch_kld":epoch_kld})
-        wandb.log({"kl_annealing ratio": kl_anneal.beta})
-        wandb.log({"teacher forcing ratio":args.tfr})
-
-        
-        with open('./{}/train_record.txt'.format(args.log_dir), 'a') as train_record:
-            train_record.write(('[epoch: %02d] loss: %.5f | mse loss: %.5f | kld loss: %.5f\n' % (epoch, epoch_loss  / args.epoch_size, epoch_mse / args.epoch_size, epoch_kld / args.epoch_size)))
-            train_record.write(('teacher ratio : %.2f\n' % (args.tfr)))
-            train_record.write(('kl_annealing_beta : %.2f\n' % kl_anneal.beta ))
-            
+        posterior.eval()
         frame_predictor.eval()
         encoder.eval()
         decoder.eval()
-        posterior.eval()
-
-        if epoch % 5 == 0:
-            
-            psnr_list = []
-            
-            for i in range(len(validate_data) // args.batch_size):
+        psnr_list = []
                 
+        for i in range(len(test_data) // args.batch_size):
+            
+            try:
+                test_seq, test_cond = next(test_iterator)
+                
+            except StopIteration:
+                test_iterator = iter(test_loader)
+                test_seq, test_cond = next(test_iterator)
+
+            test_seq, test_cond = test_seq.type(torch.FloatTensor),test_cond.type(torch.FloatTensor)
+            test_seq, test_cond = test_seq.to(device),test_cond.to(device)
+            
+            pred_seq = pred(test_seq, test_cond, modules, args)
+            pred_seq_ = np.array(pred_seq)
+
+            test_seq = torch.transpose(test_seq, 0 , 1)
+
+            _, _, psnr = finn_eval_x(test_seq[args.n_past:args.n_future+args.n_past], pred_seq[:])
+            psnr_list.append(psnr)
+        
+        ave_psnr = np.mean(np.concatenate(psnr))
+        print(ave_psnr)        
+        plot_pred(test_seq, test_cond, modules, -1, args, device, mode = 'test/', priority=True)
+
+    else:
+            
+        for epoch in range(start_epoch, start_epoch + niter):
+            frame_predictor.train()
+            posterior.train()
+            encoder.train()
+            decoder.train()
+
+            epoch_loss = 0
+            epoch_mse = 0
+            epoch_kld = 0
+
+            for i in range(args.epoch_size):
+                    
                 try:
-                    validate_seq, validate_cond = next(validate_iterator)
+                    x, cond = next(train_iterator)
                     
                 except StopIteration:
-                    validate_iterator = iter(validate_loader)
-                    validate_seq, validate_cond = next(validate_iterator)
-
-                validate_seq, validate_cond = validate_seq.type(torch.FloatTensor),validate_cond.type(torch.FloatTensor)
-                validate_seq, validate_cond = validate_seq.to(device),validate_cond.to(device)
+                    train_iterator = iter(train_loader)
+                    x, cond = next(train_iterator)
                 
-                pred_seq = pred(validate_seq, validate_cond, modules, epoch, args)
-                pred_seq_ = np.array(pred_seq)
-
-                validate_seq = torch.transpose(validate_seq, 0 , 1)
-
-                _, _, psnr = finn_eval_x(validate_seq[args.n_past:args.n_future+args.n_past], pred_seq[:])
-                psnr_list.append(psnr)
-
-
-
-            tt = (np.transpose(pred_seq_[1,1,:,:], (1, 2, 0)) + 1) * 255.0
-            data = Image.fromarray(np.uint8(tt))
-            
-            data.save('./psnr_gen/psnr:{now_epoch}.png'.format(now_epoch = epoch))
-            
-
-            ave_psnr = np.mean(np.concatenate(psnr))
-            wandb.log({"average psnr":ave_psnr})
-
-            with open('./{}/train_record.txt'.format(args.log_dir), 'a') as train_record:
-                train_record.write(('====================== validate psnr = {:.5f} ========================\n'.format(ave_psnr)))
-
-            if ave_psnr > best_val_psnr:
-                best_val_psnr = ave_psnr
-                # save the model
-                torch.save({
-                    'encoder': encoder,
-                    'decoder': decoder,
-                    'frame_predictor': frame_predictor,
-                    'posterior': posterior,
-                    'args': args,
-                    'last_epoch': epoch},
-                    '%s/model.pth' % args.log_dir)
+                x, cond = x.type(torch.FloatTensor),cond.type(torch.FloatTensor)
+                x, cond = x.to(device),cond.to(device)
                     
+                loss, mse, kld = train(x, cond, modules, optimizer, kl_anneal, args)
+                epoch_loss += loss
+                epoch_mse += mse
+                epoch_kld += kld
 
-        if epoch % 20 == 0:
-            try:
-                validate_x, validate_cond = next(validate_iterator)
-            except StopIteration:
-                validate_iterator = iter(validate_loader)
-                validate_x, validate_cond = next(validate_iterator)
+            if epoch >= args.tfr_start_decay_epoch:
+                ### Update teacher forcing ratio ###
+                args.tfr = args.tfr - args.tfr_decay_step
                 
-            validate_x = validate_x.to(device)
-            validate_cond = validate_cond.to(device)
+                lb = args.tfr_lower_bound
+                
+                if args.tfr < lb:
+                    args.tfr = lb
+        
+            progress.update(1)
+            kl_anneal.update()
+            
+            if args.wandb:
+            
+                wandb.log({"epoch_loss":epoch_loss})
+                wandb.log({"epoch_mse":epoch_mse})
+                wandb.log({"epoch_kld":epoch_kld})
+                wandb.log({"kl_annealing ratio": kl_anneal.beta})
+                wandb.log({"teacher forcing ratio":args.tfr})
 
-            # plot_pred(validate_x, validate_cond, modules, epoch, args)
-            # plot_rec(validate_x, validate_cond, modules, epoch, args)
+            
+            with open('./{}/train_record.txt'.format(args.log_dir), 'a') as train_record:
+                train_record.write(('[epoch: %02d] loss: %.5f | mse loss: %.5f | kld loss: %.5f\n' % (epoch, epoch_loss  / args.epoch_size, epoch_mse / args.epoch_size, epoch_kld / args.epoch_size)))
+                train_record.write(('teacher ratio : %.2f\n' % (args.tfr)))
+                train_record.write(('kl_annealing_beta : %.2f\n' % kl_anneal.beta ))
+                
+            frame_predictor.eval()
+            encoder.eval()
+            decoder.eval()
+            posterior.eval()
+
+            if epoch % 5 == 0:
+                
+                psnr_list = []
+                
+                for i in range(len(validate_data) // args.batch_size):
+                    
+                    try:
+                        validate_seq, validate_cond = next(validate_iterator)
+                        
+                    except StopIteration:
+                        validate_iterator = iter(validate_loader)
+                        validate_seq, validate_cond = next(validate_iterator)
+
+                    validate_seq, validate_cond = validate_seq.type(torch.FloatTensor),validate_cond.type(torch.FloatTensor)
+                    validate_seq, validate_cond = validate_seq.to(device),validate_cond.to(device)
+                    
+                    pred_seq = pred(validate_seq, validate_cond, modules, args)
+                    pred_seq_ = np.array(pred_seq)
+
+                    validate_seq = torch.transpose(validate_seq, 0 , 1)
+
+                    _, _, psnr = finn_eval_x(validate_seq[args.n_past:args.n_future+args.n_past], pred_seq[:])
+                    psnr_list.append(psnr)
+
+
+
+                tt = (np.transpose(pred_seq_[1,1,:,:], (1, 2, 0)) + 1) * 255.0
+                data = Image.fromarray(np.uint8(tt))
+                
+                data.save('./psnr_gen/psnr:{now_epoch}.png'.format(now_epoch = epoch))
+                
+
+                ave_psnr = np.mean(np.concatenate(psnr))
+                
+                if args.model_dir != '':
+                    wandb.log({"average psnr":ave_psnr})
+
+                with open('./{}/train_record.txt'.format(args.log_dir), 'a') as train_record:
+                    train_record.write(('====================== validate psnr = {:.5f} ========================\n'.format(ave_psnr)))
+
+                if ave_psnr > best_val_psnr:
+                    best_val_psnr = ave_psnr
+                    # save the model
+                    torch.save({
+                        'encoder': encoder,
+                        'decoder': decoder,
+                        'frame_predictor': frame_predictor,
+                        'posterior': posterior,
+                        'args': args,
+                        'last_epoch': epoch},
+                        '%s/model.pth' % args.log_dir)
+                        
+
+            if epoch % 20 == 0:
+                try:
+                    validate_x, validate_cond = next(validate_iterator)
+                except StopIteration:
+                    validate_iterator = iter(validate_loader)
+                    validate_x, validate_cond = next(validate_iterator)
+                    
+                validate_x = validate_x.to(device)
+                validate_cond = validate_cond.to(device)
+                # plot_pred(validate_x, validate_cond, modules, epoch, args, device, mode = 'validate', priority=True)
 
 if __name__ == '__main__':
     main()

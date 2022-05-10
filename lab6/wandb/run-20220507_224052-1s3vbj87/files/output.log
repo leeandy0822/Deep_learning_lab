@@ -5,3 +5,37 @@ Namespace(batch_size=10, beta=0.0001, beta1=0.9, cond_dim=7, cuda=True, data_roo
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+  5%|███                                                       | 16/300 [57:27<16:53:55, 214.21s/it]Traceback (most recent call last):
+  File "train_fixed_prior.py", line 405, in <module>
+    main()
+  File "train_fixed_prior.py", line 300, in main
+    loss, mse, kld = train(x, cond, modules, optimizer, kl_anneal, args)
+  File "train_fixed_prior.py", line 114, in train
+    loss.backward()
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/tensor.py", line 245, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph, inputs=inputs)
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/autograd/__init__.py", line 145, in backward
+    Variable._execution_engine.run_backward(
+KeyboardInterrupt
+Traceback (most recent call last):
+  File "train_fixed_prior.py", line 405, in <module>
+    main()
+  File "train_fixed_prior.py", line 300, in main
+    loss, mse, kld = train(x, cond, modules, optimizer, kl_anneal, args)
+  File "train_fixed_prior.py", line 114, in train
+    loss.backward()
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/tensor.py", line 245, in backward
+    torch.autograd.backward(self, gradient, retain_graph, create_graph, inputs=inputs)
+  File "/home/leeandy/.local/lib/python3.8/site-packages/torch/autograd/__init__.py", line 145, in backward
+    Variable._execution_engine.run_backward(

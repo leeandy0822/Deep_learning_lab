@@ -1,0 +1,1 @@
+{"epoch_loss": 0.7965351282618947, "_timestamp": 1652146177, "_runtime": 85290, "_step": 1559, "epoch_mse": 0.7961600394919518, "epoch_kld": 0.0003750883131109122, "kl_annealing ratio": 0.0, "teacher forcing ratio": 0.0, "average psnr": 24.48339454707963, "_wandb": {"runtime": 85291}}

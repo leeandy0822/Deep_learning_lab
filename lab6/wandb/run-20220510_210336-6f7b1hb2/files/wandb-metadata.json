@@ -1,0 +1,24 @@
+{
+    "os": "Linux-5.13.0-40-generic-x86_64-with-glibc2.29",
+    "python": "3.8.10",
+    "heartbeatAt": "2022-05-10T13:03:36.963718",
+    "startedAt": "2022-05-10T13:03:36.094905",
+    "docker": null,
+    "gpu": "NVIDIA GeForce RTX 3060",
+    "gpu_count": 1,
+    "cpu_count": 16,
+    "cuda": null,
+    "args": [],
+    "state": "running",
+    "program": "train_fixed_prior.py",
+    "codePath": "lab6/train_fixed_prior.py",
+    "git": {
+        "remote": "git@github.com:leeandy0822/Deep_learning_lab.git",
+        "commit": "52110c501922484c52568fe21805affeb99a56b2"
+    },
+    "email": "leeandy90833@gmail.com",
+    "root": "/home/leeandy/Deep_learning_lab",
+    "host": "leeandy-msi",
+    "username": "leeandy",
+    "executable": "/usr/bin/python3"
+}

@@ -87,9 +87,28 @@ class bair_robot_pushing_dataset(Dataset):
             data = list(csv.reader(csvfile))
         position = np.array(data)
 
+        # without onehot
+        
+        # c = np.concatenate((action,position),axis=1)
+        # c = c[:self.seq_len]
+        # c = c.astype(np.float)
+
+        # onehot implementation
+        
         c = np.concatenate((action,position),axis=1)
-        c = c[:self.seq_len]
         c = c.astype(np.float)
+        
+        # take the actions2 (5 dimension onehot) and action3 (5 dimension onehot)into a 10 onehot vector
+        onehot = c[:,2:4]
+        onehot = onehot.astype(int)
+        num_classes = 5
+        onehot = np.eye(num_classes)[onehot].astype(float)
+        
+        frame = 30
+        onehot = np.reshape(onehot, (frame,2*num_classes))
+        c = np.delete(c, [2,3], axis = 1)
+        c= np.concatenate([c, onehot], axis=1)
+
 
         return c
     
