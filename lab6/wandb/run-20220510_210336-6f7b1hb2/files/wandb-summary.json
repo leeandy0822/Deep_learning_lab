@@ -1,1 +1,0 @@
-{"epoch_loss": 11.376119716092933, "_timestamp": 1652188330, "_runtime": 514, "_step": 9, "epoch_mse": 6.777548721060159, "epoch_kld": 229.92855481832507, "kl_annealing ratio": 0.04, "teacher forcing ratio": 1.0}
