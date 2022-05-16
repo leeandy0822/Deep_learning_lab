@@ -20,7 +20,7 @@ class bair_robot_pushing_dataset(Dataset):
         if mode == 'train':
             self.data_dir = '%s/train' % self.root_dir
             self.ordered = False
-        elif mode == 'train':
+        elif mode == 'test':
             self.data_dir = '%s/test' % self.root_dir
             self.ordered = True 
         else :
@@ -87,14 +87,6 @@ class bair_robot_pushing_dataset(Dataset):
             data = list(csv.reader(csvfile))
         position = np.array(data)
 
-        # without onehot
-        
-        # c = np.concatenate((action,position),axis=1)
-        # c = c[:self.seq_len]
-        # c = c.astype(np.float)
-
-        # onehot implementation
-        
         c = np.concatenate((action,position),axis=1)
         c = c.astype(np.float)
         
@@ -108,8 +100,6 @@ class bair_robot_pushing_dataset(Dataset):
         onehot = np.reshape(onehot, (frame,2*num_classes))
         c = np.delete(c, [2,3], axis = 1)
         c= np.concatenate([c, onehot], axis=1)
-
-
         return c
     
     def __getitem__(self, index):

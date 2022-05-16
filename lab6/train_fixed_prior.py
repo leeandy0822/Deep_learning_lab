@@ -20,28 +20,27 @@ from models.vgg_64 import vgg_decoder, vgg_encoder
 from utils import init_weights, kl_criterion, mse_metric, plot_pred, finn_eval_x, pred
 from PIL import Image
 torch.backends.cudnn.benchmark = True
-evaluation = False
+evaluation = True
 
 def parse_args():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--lr', default=0.002, type=float, help='learning rate')
+    parser.add_argument('--lr', default=0.0001, type=float, help='learning rate')
     parser.add_argument('--beta1', default=0.9, type=float, help='momentum term for adam')
-    parser.add_argument('--batch_size', default=12, type=int, help='batch size')
+    parser.add_argument('--batch_size', default=6, type=int, help='batch size')
     parser.add_argument('--log_dir', default='./logs/fp', help='base directory to save logs')
     
     # Load pretrained 
     # parser.add_argument('--model_dir', default='./logs/fp/fast_mono/', help='base directory to save logs')
-    
-    parser.add_argument('--model_dir', default='', help='base directory to save logs')
+    parser.add_argument('--model_dir', default='./logs/fp/best', help='base directory to save logs')
     parser.add_argument('--data_root', default='./processed_data', help='root directory for data')
     parser.add_argument('--optimizer', default='adam', help='optimizer to train with')
     parser.add_argument('--niter', type=int, default=300, help='number of epochs to train for')
-    parser.add_argument('--epoch_size', type=int, default= 600, help='epoch size')
+    parser.add_argument('--epoch_size', type=int, default= 300, help='epoch size')
     parser.add_argument('--tfr', type=float, default=1.0, help='teacher forcing ratio (0 ~ 1)')
-    parser.add_argument('--tfr_start_decay_epoch', type=int, default= 30, help='The epoch hat teacher forcing ratio become decreasing')
+    parser.add_argument('--tfr_start_decay_epoch', type=int, default= 50, help='The epoch hat teacher forcing ratio become decreasing')
     parser.add_argument('--tfr_decay_step', type=float, default=0.01, help='The decay step size of teacher forcing ratio (0 ~ 1)')
     parser.add_argument('--tfr_lower_bound', type=float, default=0.0, help='The lower bound of teacher forcing ratio for scheduling teacher forcing ratio (0 ~ 1)')
-    parser.add_argument('--kl_anneal_cyclical', default= True, action='store_true', help='use cyclical mode')
+    parser.add_argument('--kl_anneal_cyclical', default= False, action='store_true', help='use cyclical mode')
     parser.add_argument('--kl_anneal_ratio', type=float, default=2, help='The decay ratio of kl annealing')
     parser.add_argument('--kl_anneal_cycle', type=int, default=3, help='The number of cycle for kl annealing (if use cyclical mode)')
     parser.add_argument('--seed', default=1, type=int, help='manual seed')
@@ -100,18 +99,15 @@ def train(x, cond, modules, optimizer, kl_anneal, args):
             h_no_teacher = h    
             
         c = cond[:, i].float()
-
         z_t, mu, logvar = modules['posterior'](h_target)
         h_pred = modules['frame_predictor'](torch.cat([h, z_t, c], 1))
         
         if use_teacher_forcing:
             h_pred = modules['frame_predictor'](torch.cat([h, z_t, c], 1))
-            
         else:
             h_pred = modules['frame_predictor'](torch.cat([h_no_teacher, z_t, c], 1))
             
         x_pred = modules['decoder']([h_pred, skip])
-        
         mse += mse_criterion(x_pred, x[:,i])
         kld += kl_criterion(mu, logvar,args)
 
@@ -119,7 +115,6 @@ def train(x, cond, modules, optimizer, kl_anneal, args):
     loss = mse + kld * beta
     loss.backward()
     optimizer.step()
-
     return loss.detach().cpu().numpy() / (args.n_past + args.n_future), mse.detach().cpu().numpy() / (args.n_past + args.n_future), kld.detach().cpu().numpy() / (args.n_future + args.n_past)
 
 
@@ -127,7 +122,7 @@ class kl_annealing():
     
     def __init__(self, args):
         super().__init__()
-        self.total_epochs = args.niter
+        self.total_epochs = args.niter*args.epoch_size
         self.kl_anneal_cycle = args.kl_anneal_cycle
         self.beta_grad = (self.kl_anneal_cycle*2)/self.total_epochs
         self.mode = 'cyclical' if args.kl_anneal_cyclical else 'monotonic'
@@ -139,13 +134,14 @@ class kl_annealing():
         if self.mode == 'cyclical' :
             self.beta += self.beta_grad
             self.beta = 1.0 if self.beta > 1.0 else self.beta 
-            if self.count % int(self.total_epochs/self.kl_anneal_cycle)==0 : 
+            if self.count % int(self.total_epochs/self.kl_anneal_cycle)==0: 
                 self.beta = 0.0 
         else :
             self.beta += self.beta_grad
             self.beta = 1.0 if self.beta > 1.0 else self.beta 
     
     def get_beta(self):
+        self.update()
         return self.beta
 
 
@@ -175,7 +171,11 @@ def main():
         args.optimizer = optimizer
         args.model_dir = model_dir
         args.log_dir = '%s/continued' % args.log_dir
+        args.lr = 0.00007
         start_epoch = saved_model['last_epoch']
+        args.data_root = './processed_data'
+        args.epoch_size = 300
+        
     
     else:
         fname = 'batch = %d annealcycle = %d kl_anneal_ratio=%d beta = %d tfr_start_decay_epoch=%d tfr_decay_step=%d'\
@@ -185,14 +185,22 @@ def main():
         niter = args.niter
         start_epoch = 0
 
-        if args.wandb:
-            wandb.init(project = "cvae", entity="leeandy0822", name= fname)
-            
-            wandb.config = {
-            "learning_rate": args.lr,
-            "epochs": args.niter,
-            "batch_size": args.batch_size
-            }
+    if evaluation:
+        args.wandb = False
+    else:
+        args.wandb
+        
+    if args.wandb and (not  evaluation):
+        fname = 'batch = %d annealcycle = %d kl_anneal_ratio=%d beta = %d tfr_start_decay_epoch=%d tfr_decay_step=%d'\
+            % (args.batch_size, args.kl_anneal_cyclical,args.kl_anneal_ratio, args.beta, args.tfr_start_decay_epoch,args.tfr_decay_step )
+
+        wandb.init(project = "cvae", entity="leeandy0822", name= fname)
+        
+        wandb.config = {
+        "learning_rate": args.lr,
+        "epochs": args.niter,
+        "batch_size": args.batch_size
+        }
 
     os.makedirs(args.log_dir, exist_ok=True)
     os.makedirs('%s/gen/' % args.log_dir, exist_ok=True)
@@ -296,11 +304,15 @@ def main():
     
     # --------- training loop ------------------------------------
 
-    progress = tqdm(total=args.niter)
-    best_val_psnr = 0
+
     
     
     if evaluation:
+        
+        print("\n=====================testing=========================\n")
+        progress = tqdm(total=len(test_data) // args.batch_size)
+        best_val_psnr = 0
+        
         frame_predictor.to(device)
         posterior.to(device)
         encoder.to(device)
@@ -318,7 +330,7 @@ def main():
                 test_seq, test_cond = next(test_iterator)
                 
             except StopIteration:
-                test_iterator = iter(test_loader)
+                test_iterator = iter(test_iterator)
                 test_seq, test_cond = next(test_iterator)
 
             test_seq, test_cond = test_seq.type(torch.FloatTensor),test_cond.type(torch.FloatTensor)
@@ -331,13 +343,16 @@ def main():
 
             _, _, psnr = finn_eval_x(test_seq[args.n_past:args.n_future+args.n_past], pred_seq[:])
             psnr_list.append(psnr)
+            
+            progress.update(1)
         
         ave_psnr = np.mean(np.concatenate(psnr))
         print(ave_psnr)        
-        plot_pred(test_seq, test_cond, modules, -1, args, device, mode = 'test/', priority=True)
+        # plot_pred(test_seq, test_cond, modules, -1, arg/s, device, mode = 'test/', priority=True)
 
     else:
-            
+        progress = tqdm(total=args.niter)
+        best_val_psnr = 0
         for epoch in range(start_epoch, start_epoch + niter):
             frame_predictor.train()
             posterior.train()
@@ -375,9 +390,8 @@ def main():
                     args.tfr = lb
         
             progress.update(1)
-            kl_anneal.update()
             
-            if args.wandb:
+            if args.wandb and (not  evaluation):
             
                 wandb.log({"epoch_loss":epoch_loss})
                 wandb.log({"epoch_mse":epoch_mse})
@@ -396,7 +410,7 @@ def main():
             decoder.eval()
             posterior.eval()
 
-            if epoch % 5 == 0:
+            if epoch % 2 == 0:
                 
                 psnr_list = []
                 
@@ -430,7 +444,7 @@ def main():
 
                 ave_psnr = np.mean(np.concatenate(psnr))
                 
-                if args.model_dir != '':
+                if args.wandb and (not evaluation):
                     wandb.log({"average psnr":ave_psnr})
 
                 with open('./{}/train_record.txt'.format(args.log_dir), 'a') as train_record:
@@ -449,7 +463,7 @@ def main():
                         '%s/model.pth' % args.log_dir)
                         
 
-            if epoch % 20 == 0:
+            if epoch % 50 == 0:
                 try:
                     validate_x, validate_cond = next(validate_iterator)
                 except StopIteration:

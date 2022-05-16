@@ -128,46 +128,34 @@ def init_weights(m):
 def pred(x, cond, modules, args):
     
     x = x.float()
-    # print(x.shape)
-
     gen_seq = []
     modules['frame_predictor'].hidden = modules['frame_predictor'].init_hidden()
     modules['posterior'].hidden = modules['posterior'].init_hidden()
 
     with torch.no_grad():
         h_seq = [ modules['encoder'](x[:,i]) for i in range(args.n_past + args.n_future)] # x : [10,12,3,64,64] h_seq : [12,10,128]
-
-        # te_em = nn.Embedding(4, 7)
-        # tense_embedding = te_em(cond.view(-1, 1))
-        #print(h_seq[0][0].size())
         for i in range(1, args.n_past + args.n_future):
             h_target = h_seq[i][0]
             #print(h_seq[i][0].size())  # [10,128]
-
             if args.last_frame_skip or i < args.n_past:	
                 h = h_seq[i-1][0] 
                 skip = h_seq[i-1][1]
             else:
                 h = h_seq[i-1][0]
-                
             if i > 1:
                 previous_img = x_pred
                 pr_latent = modules['encoder'](previous_img)
                 h_no_teacher = pr_latent[0]
-                
             else:
                 h_no_teacher = h    
             c = cond[:, i].float()
-
             z_t, mu, logvar = modules['posterior'](h_target)
-            
             if i > 1:
                 h_pred = modules['frame_predictor'](torch.cat([h, z_t,c], 1))
             else:
                 h_pred = modules['frame_predictor'](torch.cat([h_no_teacher, z_t,c], 1))
 
             x_pred = modules['decoder']([h_pred, skip])
-            
             if i > 1 :
                 gen_seq.append(x_pred.data.cpu().numpy())
         
@@ -185,7 +173,7 @@ def plot_pred(validate_seq, validate_cond, modules, epoch, args, device, mode, p
     y_pred = pred(validate_seq, validate_cond, modules, args)
 
     validate_x = validate_seq.cpu().numpy()
-    number_of_batch = 0
+    number_of_batch = 10
     to_plot_gt = torch.tensor(validate_x[:,number_of_batch])
 
     # total 10 frames   
@@ -200,7 +188,7 @@ def plot_pred(validate_seq, validate_cond, modules, epoch, args, device, mode, p
     save_gif_and_jpg(filename=filename_gif_pred, inputs = to_plot_pred)
     save_gif_and_jpg(filename=filename_gif_gt, inputs= to_plot_gt)
 
-def save_gif_and_jpg(filename, inputs, duration = 0.5):
+def save_gif_and_jpg(filename, inputs, duration = 0.25):
     # inputs shape [12,3,64,64]
     images = []
     for tensor in inputs:
